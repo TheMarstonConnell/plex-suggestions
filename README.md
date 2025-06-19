@@ -20,7 +20,7 @@ You'll need:
 
 1. **Clone this repo**
    ```bash
-   git clone https://github.com/yourusername/plex-suggestions.git
+   git clone https://github.com/themarstonconnell/plex-suggestions.git
    cd plex-suggestions
    ```
 
