@@ -6,6 +6,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"strings"
+
+	"github.com/joho/godotenv"
 )
 
 // PlexMovie represents a single movie in the Plex XML response
@@ -20,9 +24,18 @@ type PlexMediaContainer struct {
 }
 
 func main() {
-	plexToken := "bE5tzM51fQ7JVRuEidrW"
-	plexIP := "10.88.111.20"
-	sectionKey := "1" // Movies section
+	// Load environment variables from .env file (optional)
+	if err := godotenv.Load(); err != nil {
+		fmt.Println("Could not load .env file (that's okay if running in production or with env vars set)")
+	}
+
+	plexToken := os.Getenv("PLEX_TOKEN")
+	plexIP := os.Getenv("PLEX_IP")
+	sectionKey := os.Getenv("PLEX_SECTION_KEY")
+
+	if plexToken == "" || plexIP == "" || sectionKey == "" {
+		log.Fatal("Missing required environment variables. Please check your .env file.")
+	}
 
 	url := fmt.Sprintf("http://%s:32400/library/sections/%s/all?X-Plex-Token=%s", plexIP, sectionKey, plexToken)
 	resp, err := http.Get(url)
@@ -51,5 +64,17 @@ func main() {
 	for _, movie := range container.Movies {
 		listOfMovies = append(listOfMovies, fmt.Sprintf("%s (%s)", movie.Title, movie.Year))
 	}
-	fmt.Print(listOfMovies)
+
+	suggestions, err := GetSuggestionsForPlexMovies(listOfMovies)
+	if err != nil {
+		log.Fatalf("Error getting suggestions: %v", err)
+	}
+
+	suggestionsList := strings.Split(suggestions, ",")
+
+	fmt.Println(suggestionsList)
+
+	for _, suggestion := range suggestionsList {
+		RequestSpecificMovie(suggestion)
+	}
 }
