@@ -17,6 +17,9 @@ services:
       
       # OpenAI Configuration
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      
+      # Run Configuration
+      - RUN_INTERVAL_DAYS=${RUN_INTERVAL_DAYS:-0}
     
     env_file:
       - .env
@@ -25,5 +28,7 @@ services:
     volumes:
       - ./logs:/app/logs
     
-    # Run once and exit (since this is a CLI tool)
-    restart: "no"
+    # Restart policy based on RUN_INTERVAL_DAYS
+    # If RUN_INTERVAL_DAYS > 0, restart on failure
+    # If RUN_INTERVAL_DAYS = 0, don't restart (run once)
+    restart: ${RESTART_POLICY:-no}

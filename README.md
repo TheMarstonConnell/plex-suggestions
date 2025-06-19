@@ -56,6 +56,9 @@ RADARR_QUALITY_PROFILE=HD-1080p  # Optional: use profile name instead of ID
 
 # OpenAI - for movie recommendations
 OPENAI_API_KEY=sk-your-openai-key
+
+# Run Configuration
+RUN_INTERVAL_DAYS=7  # Run every 7 days, or 0 to run once and exit
 ```
 
 ### Getting API Keys
@@ -80,8 +83,30 @@ See [this article](https://support.plex.tv/articles/204059436-finding-an-authent
 
 The AI prompt is designed to suggest movies that match your taste while avoiding ones you already own. You can edit the system prompt in [the prompt folder](/prompts).
 
+## Run Modes
+
+The app can run in two modes controlled by `RUN_INTERVAL_DAYS`:
+
+**Run once and exit (default):**
+```env
+RUN_INTERVAL_DAYS=0
+```
+Perfect for manual runs or cron jobs.
+
+**Continuous mode:**
+```env
+RUN_INTERVAL_DAYS=7
+```
+Runs every 7 days (or whatever number you set).
+
 ## Docker
-Check out the `docker-compose.yml` file for local builds.
+
+### Local Development
 ```bash
-docker-compose up
+docker-compose up --build
+```
+
+### Using the published image
+```bash
+docker run --env-file .env ghcr.io/themarstonconnell/plex-suggestions:latest
 ```

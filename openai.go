@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/rs/zerolog/log"
 )
 
 //go:embed prompts
@@ -143,7 +145,7 @@ func GetSuggestionsForPlexMovies(movieList []string) (string, error) {
 
 	suggestions, err := client.GetMovieSuggestions(systemPrompt, strings.Join(movieList, ","))
 	if err != nil {
-		fmt.Printf("Error getting suggestions: %v\n", err)
+		log.Error().Err(err).Msg("Error getting suggestions")
 		return "", fmt.Errorf("error getting suggestions: %v", err)
 	}
 

@@ -9,6 +9,8 @@ import (
 	"net/url"
 	"os"
 	"strings"
+
+	"github.com/rs/zerolog/log"
 )
 
 // RadarrMovie represents a movie in Radarr
@@ -54,7 +56,7 @@ func (r *RadarrClient) SearchMovies(query string) ([]RadarrSearchResult, error) 
 	url := fmt.Sprintf("%s/api/v3/movie/lookup?term=%s", r.BaseURL, url.QueryEscape(query))
 
 	// Debug: Print the URL being called
-	fmt.Printf("🔍 Searching Radarr URL: %s\n", url)
+	log.Info().Str("url", url).Msg("🔍 Searching Radarr URL")
 
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -201,7 +203,11 @@ func (r *RadarrClient) RequestMovieByName(movieName string, qualityProfileID int
 
 	// Use the first (best) result
 	bestMatch := results[0]
-	fmt.Printf("Found movie: %s (%d) - TMDB ID: %d\n", bestMatch.Title, bestMatch.Year, bestMatch.TMDBID)
+	log.Info().
+		Str("title", bestMatch.Title).
+		Int("year", bestMatch.Year).
+		Int("tmdbId", bestMatch.TMDBID).
+		Msg("Found movie")
 
 	// Check if the movie is already in Radarr
 	existingMovies, err := r.GetMovies()
@@ -222,7 +228,10 @@ func (r *RadarrClient) RequestMovieByName(movieName string, qualityProfileID int
 		return fmt.Errorf("failed to add movie '%s' to Radarr: %v", bestMatch.Title, err)
 	}
 
-	fmt.Printf("Successfully requested '%s' (%d) to be added to Radarr\n", bestMatch.Title, bestMatch.Year)
+	log.Info().
+		Str("title", bestMatch.Title).
+		Int("year", bestMatch.Year).
+		Msg("Successfully requested movie to be added to Radarr")
 	return nil
 }
 
@@ -235,7 +244,7 @@ func (r *RadarrClient) RequestMovieByNameWithDefaults(movieName string) error {
 	if profileName != "" {
 		qualityProfileID, err = r.getQualityProfileIDByName(profileName)
 		if err != nil {
-			fmt.Printf("Warning: %v. Falling back to default profile ID 1.\n", err)
+			log.Warn().Err(err).Msg("Warning: Falling back to default profile ID 1.")
 			qualityProfileID = 1
 		}
 	} else {
@@ -329,18 +338,18 @@ func RequestSpecificMovie(movieName string) {
 
 	// Validate required environment variables
 	if radarrURL == "" || radarrAPIKey == "" {
-		fmt.Println("Missing required Radarr environment variables. Please check your .env file.")
+		log.Error().Msg("Missing required Radarr environment variables. Please check your .env file.")
 		return
 	}
 
 	client := NewRadarrClient(radarrURL, radarrAPIKey)
 
-	fmt.Printf("🎬 Requesting movie: %s\n", movieName)
+	log.Info().Str("title", movieName).Msg("🎬 Requesting movie")
 
 	err := client.RequestMovieByNameWithDefaults(movieName)
 	if err != nil {
-		fmt.Printf("❌ Error: %v\n", err)
+		log.Error().Err(err).Msg("❌ Error")
 	} else {
-		fmt.Printf("✅ Successfully requested '%s' to be added to Radarr\n", movieName)
+		log.Info().Str("title", movieName).Msg("✅ Successfully requested movie to be added to Radarr")
 	}
 }
